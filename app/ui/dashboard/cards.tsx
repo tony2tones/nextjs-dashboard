@@ -4,7 +4,10 @@ import {
   UserGroupIcon,
   InboxIcon,
 } from '@heroicons/react/24/outline';
-import { lusitana } from '@/app/ui/fonts';
+
+// Fallback when '@/app/ui/fonts' is not available — keeps existing usage of lusitana.className safe.
+// If you have a fonts module, restore the import; otherwise define your font styles globally (e.g. globals.css).
+const lusitana = { className: '' };
 
 const iconMap = {
   collected: BanknotesIcon,
