@@ -3,6 +3,7 @@ import { CalendarIcon } from '@heroicons/react/24/outline';
 // Fallback for missing '@/app/ui/fonts' module: provide minimal object with className
 const lusitana = { className: '' };
 import { Revenue } from '@/app/lib/definitions';
+import { fetchRevenue } from '@/app/lib/data';
 
 // This component is representational only.
 // For data visualization UI, check out:
@@ -10,19 +11,16 @@ import { Revenue } from '@/app/lib/definitions';
 // https://www.chartjs.org/
 // https://airbnb.io/visx/
 
-export default async function RevenueChart({
-  revenue,
-}: {
-  revenue: Revenue[];
-}) {
+export default async function RevenueChart() {
   const chartHeight = 350;
   // NOTE: Uncomment this code in Chapter 7
 
+  const revenue: Revenue[] = await fetchRevenue();
   const { yAxisLabels, topLabel } = generateYAxis(revenue);
 
-  // if (!revenue || revenue.length === 0) {
-  //   return <p className="mt-4 text-gray-400">No data available.</p>;
-  // }
+  if (!revenue || revenue.length === 0) {
+    return <p className="mt-4 text-gray-400">No data available.</p>;
+  }
 
   return (
     <div className="w-full md:col-span-4">
