@@ -4,7 +4,6 @@ import LatestInvoices from '@/app/ui/dashboard/latest-invoices';
 import { Suspense } from 'react';
 import DashboardSkeleton, { RevenueChartSkeleton } from '@/app/ui/skeletons';
 
-
 export default async function Overview() {
 	return (
 	<main>
