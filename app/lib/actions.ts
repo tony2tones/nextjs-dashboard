@@ -47,3 +47,9 @@ export async function createInvoice(data: FormData) {
 
 //   return res.json();
 }
+
+export async function updateInvoice(data: FormData) {
+   const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+
+   
+}
