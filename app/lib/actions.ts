@@ -5,11 +5,29 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import postgres from "postgres";
 
+export type State = {
+  message?: string | null;
+  errors?: {
+    customerId?: string[];
+    amount?: string[];
+    status?: string[];
+  };
+  values?: {
+    customerId?: string;
+    amount?: string;
+    status?: string;
+  }
+};
+
 const InvoiceSchema = z.object({
   id: z.string(),
-  customerId: z.string().min(1, "Customer ID is required"),
-  amount: z.coerce.number().min(0.01, "Amount must be at least 0.01"),
-  status: z.enum(["paid", "unpaid", "pending"]),
+  customerId: z.string({
+    invalid_type_error: "Please select a customer",
+  }),
+  amount: z.coerce.number().gt(0, { message: "Amount must be greater than 0" }),
+  status: z.enum(["paid", "unpaid", "pending"], {
+    invalid_type_error: "Please select a status",
+  }),
   date: z.string(),
 });
 
@@ -18,12 +36,26 @@ const UpdateInvoice = InvoiceSchema.omit({ id: true, date: true });
 
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: "require" });
 
-export async function createInvoice(data: FormData): Promise<void> {
-  const { customerId, amount, status } = CreatedInvoice.parse({
+export async function createInvoice(prevState: State, data: FormData) {
+  const validatedFields = CreatedInvoice.safeParse({
     customerId: data.get("customerId") as string,
     amount: data.get("amount"),
     status: data.get("status") as string,
   });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: "Missing Fields. Failed to Create Invoice.",
+      values: {
+        customerId: data.get("customerId") as string,
+        amount: data.get("amount") as string,
+        status: data.get("status") as string,
+      }
+    };
+  }
+
+  const { amount, customerId, status } = validatedFields.data;
 
   const amountInCents = amount * 100;
   const date = new Date().toISOString().split("T")[0];
@@ -77,9 +109,7 @@ export async function updateInvoice(id: string, data: FormData): Promise<void> {
   redirect("/dashboard/invoices");
 }
 
-export async function deleteInvoice(
-  id: string,
-): Promise<void> {
+export async function deleteInvoice(id: string): Promise<void> {
   try {
     await sql`DELETE FROM invoices WHERE id = ${id}`;
   } catch (error) {

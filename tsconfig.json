@@ -38,7 +38,7 @@
     "app/lib/placeholder-data.ts",
     "scripts/seed.js",
     ".next/dev/types/**/*.ts"
-  ],
+, "eslint.config.mjs"  ],
   "exclude": [
     "node_modules"
   ]
