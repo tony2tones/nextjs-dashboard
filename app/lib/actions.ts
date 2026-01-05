@@ -4,6 +4,9 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import postgres from "postgres";
+import { signIn } from "@/auth";
+import { AuthError } from "next-auth";
+import { sign } from "crypto";
 
 export type State = {
   message?: string | null;
@@ -16,7 +19,7 @@ export type State = {
     customerId?: string;
     amount?: string;
     status?: string;
-  }
+  };
 };
 
 const InvoiceSchema = z.object({
@@ -30,6 +33,22 @@ const InvoiceSchema = z.object({
   }),
   date: z.string(),
 });
+
+export async function authenticate(prevState: State, data: FormData) {
+  try {
+    await signIn("credentials", FormData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.message) {
+        case "CredentialsSignin":
+          return "Invalid credentials.";
+        default:
+          return "Something went wrong.";
+      }
+    }
+    throw error;
+  }
+}
 
 const CreatedInvoice = InvoiceSchema.omit({ id: true, date: true });
 const UpdateInvoice = InvoiceSchema.omit({ id: true, date: true });
@@ -51,7 +70,7 @@ export async function createInvoice(prevState: State, data: FormData) {
         customerId: data.get("customerId") as string,
         amount: data.get("amount") as string,
         status: data.get("status") as string,
-      }
+      },
     };
   }
 
